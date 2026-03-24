@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人简历模板</title>
+    <!-- 引入 Tailwind CSS 进行快速样式构建 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 html2pdf.js 用于生成 PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- 配置 Tailwind 主题色 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#39C5BB',
+                        primaryLight: 'rgba(57, 197, 187, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 自定义字体和基础设置 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+        }
+
+        /* 简历 A4 纸张容器样式 */
+        .resume-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 2rem auto;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 12mm 15mm;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* 可编辑区域的交互样式 */
+        [contenteditable="true"] {
+            outline: none;
+            border-bottom: 1px dashed transparent;
+            transition: all 0.2s;
+            min-width: 20px;
+            display: inline-block;
+        }
+
+        [contenteditable="true"]:hover,
+        [contenteditable="true"]:focus {
+            border-bottom: 1px dashed #39C5BB;
+            background-color: rgba(57, 197, 187, 0.05);
+            border-radius: 2px;
+        }
+
+        /* 章节标题下划线 */
+        .section-title {
+            border-bottom: 2px solid #39C5BB;
+            padding-bottom: 4px;
+            margin-bottom: 16px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* 突出显示的区块 (专业、实践、特长) */
+        .highlight-box {
+            border-left: 4px solid #39C5BB;
+            background-color: rgba(57, 197, 187, 0.05);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 避免在打印/导出时被截断 */
+        .page-break-avoid {
+            page-break-inside: avoid;
+        }
+
+        /* 打印和导出PDF时的样式优化 */
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            .resume-container { 
+                box-shadow: none; 
+                margin: 0; 
+                padding: 10mm; 
+                width: 100%;
+            }
+            [contenteditable="true"] { 
+                border-bottom: none !important; 
+                background-color: transparent !important; 
+            }
+        }
+        
+        /* 自定义滚动条 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #39C5BB; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2ba89e; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- 顶部操作栏 (导出PDF时不显示) -->
+    <div class="no-print fixed top-0 w-full bg-white shadow-sm z-50 border-b-4 border-primary">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center text-gray-600">
+                <svg class="w-6 h-6 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span><strong>提示：</strong>直接点击简历中的文字即可进行修改填写。完成后点击右侧按钮下载。</span>
+            </div>
+            <button onclick="exportToPDF()" class="bg-primary hover:bg-[#2ba89e] text-white px-6 py-2 rounded-full font-medium transition-colors shadow-md flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                导出 PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- 占位，防止顶部导航栏遮挡内容 -->
+    <div class="h-20 no-print"></div>
+
+    <!-- 简历主体内容 -->
+    <div class="resume-container" id="resume-content">
+        
+        <!-- 头部：姓名与求职意向 -->
+        <header class="flex justify-between items-end border-b pb-6 mb-6">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-800 tracking-wider mb-2" contenteditable="true">张小明</h1>
+                <p class="text-lg text-primary font-medium" contenteditable="true">求职意向：前端开发工程师 / 产品运营</p>
+            </div>
+            <!-- 头像占位区域 -->
+            <div class="w-24 h-32 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 bg-gray-50 rounded-md overflow-hidden relative group">
+                <span class="text-sm text-center px-2 group-hover:opacity-0 transition-opacity">点击此处<br>可替换照片<br>(可选)</span>
+                <!-- 用户如需插入照片，可通过拖拽图片到此区域或修改此 img 标签 -->
+                <img src="" id="avatar-img" class="absolute inset-0 w-full h-full object-cover hidden" alt="个人照片">
+            </div>
+        </header>
+
+        <!-- 第一部分：个人情况 -->
+        <section class="mb-6 page-break-avoid">
+            <h2 class="text-xl font-bold text-primary section-title">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                个人情况
+            </h2>
+            <div class="grid grid-cols-2 gap-y-3 gap-x-8 text-gray-700">
+                <div class="flex"><span class="w-20 text-gray-500 font-medium">出生年月：</span><span contenteditable="true" class="flex-1">2001年05月</span></div>
+                <div class="flex"><span class="w-20 text-gray-500 font-medium">政治面貌：</span><span contenteditable="true" class="flex-1">中共党员</span></div>
+                <div class="flex"><span class="w-20 text-gray-500 font-medium">联系电话：</span><span contenteditable="true" class="flex-1">138-xxxx-8888</span></div>
+                <div class="flex"><span class="w-20 text-gray-500 font-medium">电子邮箱：</span><span contenteditable="true" class="flex-1">zhangxiaoming@email.com</span></div>
+                <div class="flex"><span class="w-20 text-gray-500 font-medium">最高学历：</span><span contenteditable="true" class="flex-1">本科</span></div>
+                <div class="flex"><span class="w-20 text-gray-500 font-medium">现居地址：</span><span contenteditable="true" class="flex-1">北京市海淀区xx路xx号</span></div>
+            </div>
+        </section>
+
+        <!-- 第二部分：突出个人学习专业 (使用高亮框) -->
+        <section class="mb-6 page-break-avoid">
+            <h2 class="text-xl font-bold text-primary section-title">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path></svg>
+                教育背景与学习专业
+            </h2>
+            <div class="highlight-box">
+                <div class="flex justify-between font-bold text-gray-800 text-lg mb-1">
+                    <span contenteditable="true">XX大学</span>
+                    <span contenteditable="true" class="text-primary text-base">2019.09 - 2023.06</span>
+                </div>
+                <div class="flex justify-between font-medium text-gray-700 mb-2">
+                    <span contenteditable="true">计算机科学与技术 / 学士学位</span>
+                    <span contenteditable="true">GPA: 3.8/4.0 (专业前 5%)</span>
+                </div>
+                <div class="text-gray-600 text-sm leading-relaxed">
+                    <p><strong class="text-gray-700">主修专业课程：</strong><span contenteditable="true">数据结构与算法、计算机网络、操作系统、软件工程、前端进阶开发、数据库系统原理等。具备扎实的计算机理论基础。</span></p>
+                    <p class="mt-1"><strong class="text-gray-700">专业研究/项目：</strong><span contenteditable="true">独立完成《基于Vue的智能校园管理系统》毕业设计，获校级优秀毕设；参与省级大学生创新创业项目，负责数据可视化模块开发。</span></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第三部分：实习实践 (使用高亮框) -->
+        <section class="mb-6 page-break-avoid">
+            <h2 class="text-xl font-bold text-primary section-title">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                实习与社会实践
+            </h2>
+            
+            <div class="highlight-box mb-4">
+                <div class="flex justify-between font-bold text-gray-800 text-lg mb-1">
+                    <span contenteditable="true">XX科技股份有限公司</span>
+                    <span contenteditable="true" class="text-primary text-base">2022.07 - 2022.12</span>
+                </div>
+                <div class="font-medium text-gray-700 mb-2" contenteditable="true">
+                    前端开发实习生 | 研发中心
+                </div>
+                <ul class="list-disc list-inside text-gray-600 text-sm leading-relaxed space-y-1">
+                    <li contenteditable="true">参与公司核心产品“云图数据分析平台”的前端页面重构，使用 React + TailwindCSS 技术栈。</li>
+                    <li contenteditable="true">独立负责“用户数据仪表盘”模块的开发，通过 ECharts 实现数据的可视化展示，优化渲染性能，页面加载速度提升 20%。</li>
+                    <li contenteditable="true">与产品经理及UI设计师紧密协作，优化移动端自适应布局，提升用户交互体验。</li>
+                </ul>
+            </div>
+
+            <div class="highlight-box">
+                <div class="flex justify-between font-bold text-gray-800 text-lg mb-1">
+                    <span contenteditable="true">全国大学生乡村振兴暑期社会实践</span>
+                    <span contenteditable="true" class="text-primary text-base">2021.07 - 2021.08</span>
+                </div>
+                <div class="font-medium text-gray-700 mb-2" contenteditable="true">
+                    实践团副团长 | 宣传策划组组长
+                </div>
+                <ul class="list-disc list-inside text-gray-600 text-sm leading-relaxed space-y-1">
+                    <li contenteditable="true">深入XX省XX村进行为期一个月的驻村调研，收集并发放问卷 500 余份，撰写 2 万字调研报告。</li>
+                    <li contenteditable="true">负责实践团队的新媒体运营，撰写并发布新闻稿件 15 篇，累计阅读量超 5 万，团队获评“省级优秀实践团队”。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四部分：担任职务 -->
+        <section class="mb-6 page-break-avoid">
+            <h2 class="text-xl font-bold text-primary section-title">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                担任职务
+            </h2>
+            <div class="border-l-2 border-gray-200 pl-4 ml-2">
+                <div class="mb-4 relative">
+                    <div class="absolute w-3 h-3 bg-primary rounded-full -left-[23px] top-1.5"></div>
+                    <div class="flex justify-between font-bold text-gray-800 mb-1">
+                        <span contenteditable="true">校学生会主席团成员</span>
+                        <span contenteditable="true" class="text-gray-500 font-normal text-sm">2021.09 - 2022.06</span>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed" contenteditable="true">
+                        统筹规划校级文体活动及学术讲座，成功举办校级“十佳歌手大赛”、“科技创新周”等大型活动 10 余场。有效协调各部门工作，提升团队凝聚力和执行力，具备出色的组织管理与领导能力。
+                    </p>
+                </div>
+                <div class="relative">
+                    <div class="absolute w-3 h-3 bg-primary rounded-full -left-[23px] top-1.5"></div>
+                    <div class="flex justify-between font-bold text-gray-800 mb-1">
+                        <span contenteditable="true">计算机学院青年志愿者协会会长</span>
+                        <span contenteditable="true" class="text-gray-500 font-normal text-sm">2020.09 - 2021.06</span>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed" contenteditable="true">
+                        组织开展“社区电脑义诊”、“留守儿童支教”等志愿服务活动 20 余次。建立完善的志愿者考核评价体系，社团在此期间获评“校级十佳精品社团”。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 第五部分：特长专长 (使用高亮框) -->
+        <section class="page-break-avoid">
+            <h2 class="text-xl font-bold text-primary section-title">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+                特长专长与荣誉
+            </h2>
+            <div class="highlight-box text-sm text-gray-600 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h3 class="font-bold text-gray-800 mb-1">专业技能：</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li contenteditable="true">熟练掌握 HTML/CSS/JS，熟悉 React/Vue 框架</li>
+                        <li contenteditable="true">熟悉 Python 数据分析及 SQL 数据库操作</li>
+                        <li contenteditable="true">熟练使用 Photoshop、Figma 等设计工具</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 mb-1">语言及证书：</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li contenteditable="true">大学英语六级 (CET-6: 580分) - 具备流利的读写能力</li>
+                        <li contenteditable="true">计算机技术与软件专业技术资格（前端开发初级）</li>
+                    </ul>
+                </div>
+                <div class="col-span-1 md:col-span-2 mt-2">
+                    <h3 class="font-bold text-gray-800 mb-1">荣誉奖项：</h3>
+                    <p contenteditable="true">连续三年荣获“国家励志奖学金”、全国大学生数学建模竞赛省级一等奖、校级“优秀毕业生”、“三好学生”等荣誉称号。</p>
+                </div>
+                <div class="col-span-1 md:col-span-2 mt-2">
+                    <h3 class="font-bold text-gray-800 mb-1">个人特质：</h3>
+                    <p contenteditable="true">逻辑思维清晰，具备较强的抗压能力和快速学习能力；喜欢团队协作，善于沟通与问题解决；业余爱好摄影与马拉松，拥有良好的身体素质与坚持不懈的意志。</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        /**
+         * 导出简历为 PDF 的功能
+         * 使用 html2pdf.js 库，确保导出高质量和正确的分页
+         */
+        function exportToPDF() {
+            // 获取简历主体元素
+            const element = document.getElementById('resume-content');
+            
+            // 提示用户正在生成
+            const btn = document.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '正在生成PDF...';
+            btn.disabled = true;
+
+            // 临时移除可编辑状态，避免PDF中有光标或提示线
+            const editables = document.querySelectorAll('[contenteditable="true"]');
+            editables.forEach(el => el.setAttribute('contenteditable', 'false'));
+
+            // 配置项
+            const opt = {
+                margin:       [0, 0, 0, 0], // 边距由CSS内的padding控制
+                filename:     '个人简历.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // 生成并保存
+            html2pdf().set(opt).from(element).save().then(() => {
+                // 恢复按钮状态和可编辑状态
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                editables.forEach(el => el.setAttribute('contenteditable', 'true'));
+            }).catch(err => {
+                console.error("PDF生成错误:", err);
+                alert("生成PDF时发生错误，请稍后再试。");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                editables.forEach(el => el.setAttribute('contenteditable', 'true'));
+            });
+        }
+
+        // 添加照片点击上传的简单交互逻辑 (通过FileReader读取本地图片替换)
+        const avatarContainer = document.querySelector('.w-24.h-32');
+        const avatarImg = document.getElementById('avatar-img');
+
+        avatarContainer.addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        avatarImg.src = event.target.result;
+                        avatarImg.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        });
+    </script>
+</body>
+</html>
